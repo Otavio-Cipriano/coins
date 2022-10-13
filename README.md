@@ -9,7 +9,7 @@
 A API developed using AdonisJs and the data provided by the API [CoinGecko](https://www.coingecko.com/en/api/documentation)
 
 ## Project
-* [Project](##Project)
+* [Project](#Project)
 * [Endpoints](#Endpoints)
 
 ## Endpoints
