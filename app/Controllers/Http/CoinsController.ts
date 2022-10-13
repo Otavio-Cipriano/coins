@@ -1,8 +1,9 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import ConvertTimeToFullDate from 'App/Helpers/ConvertTimeToFullDate'
-import CoinsService from 'App/Services/CoinsService'
+import CoinsService from 'App/Services/CoinsGeckoService'
 
 export default class CoinsController {
+
     public async index(ctx: HttpContextContract){
         let coinResult = await CoinsService.getCoin()
         
@@ -19,7 +20,7 @@ export default class CoinsController {
         return ctx.response.status(400).send({error: 'Wait for a minute, before try again'})
     }
 
-    public async getCoinCurrency(ctx: HttpContextContract){
+    public async getCoinWithSpecificCurrency(ctx: HttpContextContract){
         let currency = ctx.request.params()['currency']
         let isCurrencySupported = await this.checkSupportedCurrency(currency)
 
