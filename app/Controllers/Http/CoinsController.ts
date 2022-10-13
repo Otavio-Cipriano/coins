@@ -34,7 +34,7 @@ export default class CoinsController {
             })
         }
 
-        return ctx.response.status(400).send({
+        return ctx.response.status(406).send({
             message: "This currency is not supported"
         })
         
