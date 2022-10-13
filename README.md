@@ -8,9 +8,15 @@
 
 A API developed using AdonisJs and the data provided by the API [CoinGecko](https://www.coingecko.com/en/api/documentation)
 
-## Project
-* [Project](#Project)
+## Index
+
+* [Index](#Index)
+* [API](#Api)
 * [Endpoints](#Endpoints)
+
+## API
+
+Use this root URL to make API requests: https://coins-integration-api.onrender.com
 
 ## Endpoints
 
