@@ -3,8 +3,8 @@ import axios from 'axios'
 export default class AxiosCommonRequest {
     private static api = axios.create({baseURL: 'https://api.coingecko.com/api/v3/'})
 
-    public static async doRequest(url: string){
-        return this.api.get(url)
+    public static async doRequest(url: string, params?: object){
+        return this.api.get(url, { params: params})
         .then(res => {
             return res.data
         }).catch(err =>{

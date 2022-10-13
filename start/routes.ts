@@ -25,3 +25,5 @@ Route.get('/', async () => {
 })
 
 Route.get('bitcoin', 'CoinsController.index')
+
+Route.get('bitcoin/:currency', 'CoinsController.getCoinCurrency')
