@@ -23,11 +23,13 @@ Methods allowed by the endpoint
 
 Returns all currencies from bitcoin supported by CoinGecko and last time updated
 
-    {
-      "coin": "Bitcoin",
-      "current_price": [currencies],
-      "last_updated": '2022-10-13T07:12:41.520Z'
-    }
+* Response 200 (application/json)
+
+      {
+        "coin": "Bitcoin",
+        "current_price": [currencies],
+        "last_updated": '2022-10-13T07:12:41.520Z'
+      }
 
 
 ## /Bitcoin/:Currency
@@ -38,10 +40,12 @@ Methods allowed by the endpoint
 
 Returns only a specific currency from bitcoin supported by CoinGecko and last time updated
 
-    {
-      "coin": "Bitcoin",
-      "current_price": {
-        "brl": "101023"
-      },
-      "last_updated": '2022-10-13T07:12:41.520Z'
-    }
+* Response 200 (application/json)
+
+      {
+        "coin": "Bitcoin",
+        "current_price": {
+          "brl": "101023"
+        },
+        "last_updated": '2022-10-13T07:12:41.520Z'
+      }
