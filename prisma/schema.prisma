@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  referentialIntegrity = "prisma"
+}
+
+model QueryHistory{
+  id Int @id @default(autoincrement())
+  coin String
+  currencies Currency[]
+  created_at DateTime @default(now())
+}
+
+model Currency{
+  id Int @id @default(autoincrement())
+  name String
+  value Decimal
+
+  QueryHistory QueryHistory? @relation(fields: [queryHistoryId], references: [id])
+  queryHistoryId Int?
+}
+
+model SupportedCoin{
+  id Int @id @default(autoincrement())
+  name String
+  created_at DateTime @default(now())
+}
+
+model SupportedCurrencie{
+  id Int @id @default(autoincrement())
+  name String
+  created_at DateTime @default(now())
+}

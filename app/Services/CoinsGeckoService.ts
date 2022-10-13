@@ -1,9 +1,9 @@
 import AxiosBaseRequest from "./AxiosBaseRequest";
 
 export default class CoinsService {
-    public static async getCoin(){
+    public static async getCoin(coin: string){
         try {
-            let coinResult = await AxiosBaseRequest.doRequest('coins/bitcoin')
+            let coinResult = await AxiosBaseRequest.doRequest(`coins/${coin}`)
         
             return { success: true, data: coinResult.market_data}
             

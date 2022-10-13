@@ -5,11 +5,18 @@ import CoinsService from 'App/Services/CoinsGeckoService'
 export default class CoinsController {
 
     public async index(ctx: HttpContextContract){
-        let coinResult = await CoinsService.getCoin()
+        let params = ctx.request.params()
+        let coinResult: any; 
         
+        if(!params['coin']){
+            coinResult = await CoinsService.getCoin(params['coin'])
+        }else{
+            coinResult = await CoinsService.getCoin('bitcoin')
+        }
+
         if(coinResult.success){
             return ctx.response.status(200).send({
-                coin: "bitcoin",
+                coin: coinResult.data.name,
                 current_price: {
                     ...coinResult.data.current_price
                 },
