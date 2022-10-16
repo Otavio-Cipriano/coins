@@ -12,30 +12,37 @@ datasource db {
   referentialIntegrity = "prisma"
 }
 
-model QueryHistory{
+model Query{
   id Int @id @default(autoincrement())
   coin String
   currencies Currency[]
   created_at DateTime @default(now())
+
+  @@map("queries")
 }
 
 model Currency{
   id Int @id @default(autoincrement())
   name String
   value Decimal
+  QueryHistory Query? @relation(fields: [queryId], references: [id])
+  queryId Int?
 
-  QueryHistory QueryHistory? @relation(fields: [queryHistoryId], references: [id])
-  queryHistoryId Int?
+  @@map("currencies")
 }
 
 model SupportedCoin{
   id Int @id @default(autoincrement())
   name String
   created_at DateTime @default(now())
+
+  @@map("supported_coins")
 }
 
 model SupportedCurrencie{
   id Int @id @default(autoincrement())
   name String
   created_at DateTime @default(now())
+
+  @@map("supported_currencies")
 }

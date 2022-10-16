@@ -1,11 +1,12 @@
 import AxiosBaseRequest from "./AxiosBaseRequest";
 
+
 export default class CoinsService {
     public static async getCoin(coin: string){
         try {
             let coinResult = await AxiosBaseRequest.doRequest(`coins/${coin}`)
         
-            return { success: true, data: coinResult.market_data}
+            return { success: true, data: coinResult}
             
         } catch (err) {
 
@@ -14,9 +15,9 @@ export default class CoinsService {
         }
     }
 
-    public static async getCoinCurrency(currency: string){
+    public static async getCoinCurrency(coin: string, currency: string){
         try {
-            let coinResult = await AxiosBaseRequest.doRequest('simple/price',{ ids: 'bitcoin', vs_currencies: currency, include_last_updated_at: true})
+            let coinResult = await AxiosBaseRequest.doRequest('simple/price',{ ids: coin, vs_currencies: currency, include_last_updated_at: true})
             
             return { success: true, data: coinResult }
         
@@ -37,6 +38,19 @@ export default class CoinsService {
             
             return {success: false, data: 'Try Again Later'}
         
+        }
+    }
+
+    public static async getCoinsList(){
+        try {
+            let coinsList: any[] = await AxiosBaseRequest.doRequest('coins/list')
+
+            return { success: true, data: coinsList }
+
+        } catch (error) {
+
+            return { success: false, data: [] }
+
         }
     }
 };

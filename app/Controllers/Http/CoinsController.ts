@@ -1,60 +1,91 @@
-import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import ConvertTimeToFullDate from 'App/Helpers/ConvertTimeToFullDate'
-import CoinsService from 'App/Services/CoinsGeckoService'
+import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
+import ConvertTimeToFullDate from "App/Helpers/ConvertTimeToFullDate";
+import GetObjKey from "App/Helpers/GetObjKey";
+import CoinsService from "App/Services/CoinsGeckoService";
 
 export default class CoinsController {
+  public async index(ctx: HttpContextContract) {
+    let params = ctx.request.params();
+    let coin = !params["coin"] ? "bitcoin" : params["coin"].toLowerCase();
 
-    public async index(ctx: HttpContextContract){
-        let params = ctx.request.params()
-        let coinResult: any; 
-        
-        if(!params['coin']){
-            coinResult = await CoinsService.getCoin(params['coin'])
-        }else{
-            coinResult = await CoinsService.getCoin('bitcoin')
-        }
+    let isSupportedCoin = await this.checkSupportedCoin(coin);
 
-        if(coinResult.success){
-            return ctx.response.status(200).send({
-                coin: coinResult.data.name,
-                current_price: {
-                    ...coinResult.data.current_price
-                },
-                last_updated: coinResult.data.last_updated
-            })
-        }
+    if (!isSupportedCoin)
+      return ctx.response
+        .status(406)
+        .send({ error: "This Coins is not Supported" });
 
-        return ctx.response.status(400).send({error: 'Wait for a minute, before try again'})
+    let coinResult = await CoinsService.getCoin(coin);
+
+    if (coinResult.success) {
+      return ctx.response.status(200).send({
+        coin: coinResult.data.name,
+        current_price: {
+          ...coinResult.data.market_data.current_price,
+        },
+        last_updated: coinResult.data.market_data.last_updated,
+      });
     }
 
-    public async getCoinWithSpecificCurrency(ctx: HttpContextContract){
-        let currency = ctx.request.params()['currency']
-        let isCurrencySupported = await this.checkSupportedCurrency(currency)
+    return ctx.response
+      .status(400)
+      .send({ error: "Wait for a minute, before try again" });
+  }
 
-        if(isCurrencySupported){
-            let coinResult = await CoinsService.getCoinCurrency(currency)
-            
-            if(coinResult.success) 
-            return ctx.response.status(200).send({
-                coin: "bitcoin",
-                current_price: coinResult.data["bitcoin"][currency],
-                last_updated: ConvertTimeToFullDate(coinResult.data["bitcoin"].last_updated_at)
-            })
-        }
+  public async getCoinWithSpecificCurrency(ctx: HttpContextContract) {
+    let params = ctx.request.params();
+    let currency = !params["currency"] ? "usd" : params["currency"].toLowerCase();
+    let coin = !params["coin"] ? "bitcoin" : params["coin"].toLowerCase();
 
-        return ctx.response.status(406).send({
-            message: "This currency is not supported"
-        })
-        
+    let isSupportedCoin = await this.checkSupportedCoin(coin);
+
+    if (!isSupportedCoin)
+      return ctx.response
+        .status(406)
+        .send({ error: "This Coins is not Supported" });
+
+    let isCurrencySupported = await this.checkSupportedCurrency(currency);
+
+    if (isCurrencySupported) {
+      let coinResult = await CoinsService.getCoinCurrency(coin, currency);
+
+      if (coinResult.success) {
+        return ctx.response.status(200).send({
+          coin: GetObjKey(coinResult.data, coin),
+          current_price: coinResult.data["bitcoin"][currency],
+          last_updated: ConvertTimeToFullDate(
+            coinResult.data["bitcoin"].last_updated_at
+          ),
+        });
+      }
     }
 
-    private async checkSupportedCurrency(currency: string){
-        let supportedCurrencies = await CoinsService.getSupportedCurrencies()
+    return ctx.response.status(406).send({
+      message: "This currency is not supported",
+    });
+  }
 
-        if(supportedCurrencies.success){
-            return supportedCurrencies.data.includes(currency)
-        }
+  private async checkSupportedCoin(coin: string) {
+    let coinsList = await CoinsService.getCoinsList();
 
-        return false
+    if(!coinsList.success) return false;
+    
+    let supportedCoin = coinsList.data.find((e) => {
+      return e.id == coin;
+    });
+
+    if (supportedCoin) return true;
+
+    return false;
+  }
+
+  private async checkSupportedCurrency(currency: string) {
+    let supportedCurrencies = await CoinsService.getSupportedCurrencies();
+
+    if (supportedCurrencies.success) {
+      return supportedCurrencies.data.includes(currency);
     }
+
+    return false;
+  }
 }

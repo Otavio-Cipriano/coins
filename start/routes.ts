@@ -20,7 +20,6 @@
 
 import Route from '@ioc:Adonis/Core/Route'
 
+Route.get('/:coin?', 'CoinsController.index')
 
-Route.get('/:coin', 'CoinsController.index')
-
-Route.get('/:coin/:currency', 'CoinsController.getCoinWithSpecificCurrency')
+Route.get('/:coin/:currency?', 'CoinsController.getCoinWithSpecificCurrency')
