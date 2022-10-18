@@ -12,13 +12,13 @@ datasource coins {
   referentialIntegrity = "prisma"
 }
 
-model Query{
+model QueryHistory{
   id Int @id @default(autoincrement())
   coin String
   currencies Currency[]
   created_at DateTime @default(now())
 
-  @@map("queries")
+  @@map("queries_history")
 }
 
 model Currency{
@@ -26,8 +26,8 @@ model Currency{
   name String
   value Decimal
   created_at DateTime @default(now())
-  queriedAt Query @relation(fields: [queryId], references: [id])
-  queryId Int
+  queriedAt QueryHistory @relation(fields: [queryHistoryId], references: [id])
+  queryHistoryId Int
 
   @@map("currencies")
 }
