@@ -1,7 +1,7 @@
 import AxiosBaseRequest from "./AxiosBaseRequest";
 
 
-export default class CoinsService {
+export default class CoinsGeckoService {
     public static async getCoin(coin: string){
         try {
             let coinResult = await AxiosBaseRequest.doRequest(`coins/${coin}`)

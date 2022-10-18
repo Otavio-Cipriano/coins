@@ -1,7 +1,8 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
+import ConvertCurrentPrices from "App/Helpers/ConvertCurrentPrice";
 import ConvertTimeToFullDate from "App/Helpers/ConvertTimeToFullDate";
 import GetObjKey from "App/Helpers/GetObjKey";
-import CoinsService from "App/Services/CoinsGeckoService";
+import CoinsGeckoService from "App/Services/CoinsGeckoService";
 
 export default class CoinsController {
   public async index(ctx: HttpContextContract) {
@@ -10,26 +11,22 @@ export default class CoinsController {
 
     let isSupportedCoin = await this.checkSupportedCoin(coin);
 
-    if (!isSupportedCoin)
-      return ctx.response
-        .status(406)
-        .send({ error: "This Coins is not Supported" });
+    if (!isSupportedCoin) return ctx.response.status(406).send({ error: "This Coins is not Supported" });
 
-    let coinResult = await CoinsService.getCoin(coin);
+    let coinResult = await CoinsGeckoService.getCoin(coin);
 
-    if (coinResult.success) {
-      return ctx.response.status(200).send({
-        coin: coinResult.data.name,
-        current_price: {
-          ...coinResult.data.market_data.current_price,
-        },
-        last_updated: coinResult.data.market_data.last_updated,
-      });
+    if (!coinResult.success) return ctx.response.status(400).send({ error: "Wait for a minute, before try again" });
+    
+    let responseBody = {
+      coin: coinResult.data.id,
+      current_price: [
+        ...ConvertCurrentPrices(coinResult.data.market_data.current_price),
+      ],
+      last_updated: coinResult.data.market_data.last_updated,
     }
 
-    return ctx.response
-      .status(400)
-      .send({ error: "Wait for a minute, before try again" });
+    return ctx.response.status(200).send(responseBody);
+    
   }
 
   public async getCoinWithSpecificCurrency(ctx: HttpContextContract) {
@@ -39,37 +36,35 @@ export default class CoinsController {
 
     let isSupportedCoin = await this.checkSupportedCoin(coin);
 
-    if (!isSupportedCoin)
-      return ctx.response
-        .status(406)
-        .send({ error: "This Coins is not Supported" });
+    if (!isSupportedCoin) return ctx.response.status(406).send({ error: "This Coins is not Supported" });
 
     let isCurrencySupported = await this.checkSupportedCurrency(currency);
 
-    if (isCurrencySupported) {
-      let coinResult = await CoinsService.getCoinCurrency(coin, currency);
+    if (!isCurrencySupported) return ctx.response.status(406).send({ message: "This currency is not supported" });
 
-      if (coinResult.success) {
-        return ctx.response.status(200).send({
-          coin: GetObjKey(coinResult.data, coin),
-          current_price: coinResult.data["bitcoin"][currency],
-          last_updated: ConvertTimeToFullDate(
-            coinResult.data["bitcoin"].last_updated_at
-          ),
-        });
-      }
+    let coinResult = await CoinsGeckoService.getCoinCurrency(coin, currency);
+
+    if (!coinResult.success) return ctx.response.status(406).send({ message: "Ops something went wrong" });
+
+    let priceObj = {};
+    priceObj[currency] = coinResult.data[coin][currency];
+
+    let responseBody = {
+      coin: GetObjKey(coinResult.data, coin),
+      current_price: priceObj,
+      last_updated: ConvertTimeToFullDate(
+        coinResult.data[coin].last_updated_at
+      ),
     }
 
-    return ctx.response.status(406).send({
-      message: "This currency is not supported",
-    });
+    return ctx.response.status(200).send(responseBody);
   }
 
   private async checkSupportedCoin(coin: string) {
-    let coinsList = await CoinsService.getCoinsList();
+    let coinsList = await CoinsGeckoService.getCoinsList();
 
-    if(!coinsList.success) return false;
-    
+    if (!coinsList.success) return false;
+
     let supportedCoin = coinsList.data.find((e) => {
       return e.id == coin;
     });
@@ -80,7 +75,7 @@ export default class CoinsController {
   }
 
   private async checkSupportedCurrency(currency: string) {
-    let supportedCurrencies = await CoinsService.getSupportedCurrencies();
+    let supportedCurrencies = await CoinsGeckoService.getSupportedCurrencies();
 
     if (supportedCurrencies.success) {
       return supportedCurrencies.data.includes(currency);

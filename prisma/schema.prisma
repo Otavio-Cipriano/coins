@@ -6,7 +6,7 @@ generator client {
   previewFeatures = ["referentialIntegrity"]
 }
 
-datasource db {
+datasource coins {
   provider = "mysql"
   url      = env("DATABASE_URL")
   referentialIntegrity = "prisma"
@@ -25,11 +25,13 @@ model Currency{
   id Int @id @default(autoincrement())
   name String
   value Decimal
-  QueryHistory Query? @relation(fields: [queryId], references: [id])
-  queryId Int?
+  created_at DateTime @default(now())
+  queriedAt Query @relation(fields: [queryId], references: [id])
+  queryId Int
 
   @@map("currencies")
 }
+
 
 model SupportedCoin{
   id Int @id @default(autoincrement())
