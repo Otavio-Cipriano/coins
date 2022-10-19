@@ -1,11 +1,19 @@
 import { prisma } from "@ioc:Adonis/Addons/Prisma";
 import { Query } from "App/Models/Query";
 
-export default class QueryRepository {
+export default class QueryHistoryRepository {
   public static async getQueryByCoin(coin: string) {
-    let query = await prisma.query.findFirst({
+    let query = await prisma.queryHistory.findFirst({
       where: {
-        coin: coin
+        coin: coin,
+      },
+      include: {
+        currencies: {
+          select: {
+            name: true,
+            value: true
+          }
+        }
       }
     });
 
@@ -13,9 +21,10 @@ export default class QueryRepository {
   }
 
   public static async createQuery(data: Query) {
-    let newQuery = await prisma.query.create({
+    let newQuery = await prisma.queryHistory.create({
       data: {
         coin: data.coin,
+        last_updated: data.last_updated,
         currencies: {
           create: data.currencies
         }

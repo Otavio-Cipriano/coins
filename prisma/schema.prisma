@@ -16,6 +16,7 @@ model QueryHistory{
   id Int @id @default(autoincrement())
   coin String
   currencies Currency[]
+  last_updated String
   created_at DateTime @default(now())
 
   @@map("queries_history")

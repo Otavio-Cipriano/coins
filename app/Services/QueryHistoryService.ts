@@ -1,10 +1,10 @@
 import { Query } from "App/Models/Query";
-import QueryRepository from "App/Repositories/QueryRepository";
+import QueryHistoryRepository from "App/Repositories/QueryHistoryRepository";
 
-export default class QueryService {
+export default class QueryHistoryService {
   public static async getQueryByCoin(coin: string) {
     try {
-      let query = await QueryRepository.getQueryByCoin(coin);
+      let query = await QueryHistoryRepository.getQueryByCoin(coin);
       return query;
     } catch (error) {
       console.log(error);
@@ -17,7 +17,7 @@ export default class QueryService {
 
       if (queryExist) return { success: false, data: null };
       
-      let createdQuery = await QueryRepository.createQuery(data);
+      let createdQuery = await QueryHistoryRepository.createQuery(data);
 
       if (createdQuery) return { success: true, data: createdQuery };
     } catch (error) {
