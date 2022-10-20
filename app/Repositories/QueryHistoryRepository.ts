@@ -20,6 +20,27 @@ export default class QueryHistoryRepository {
     return query;
   }
 
+  public static async getQueryByCoinAndCurrency(coin: string, currency: string) {
+    let query = await prisma.queryHistory.findFirst({
+      where: {
+        coin: coin,
+      },
+      include: {
+        currencies: {
+          select: {
+            name: true,
+            value: true
+          },
+          where: {
+            name: currency
+          }
+        }
+      }
+    });
+
+    return query;
+  }
+
   public static async createQuery(data: Query) {
     let newQuery = await prisma.queryHistory.create({
       data: {

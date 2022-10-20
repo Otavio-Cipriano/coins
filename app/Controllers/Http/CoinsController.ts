@@ -9,7 +9,7 @@ import QueryHistoryService from "App/Services/QueryHistoryService";
 export default class CoinsController {
   public async index(ctx: HttpContextContract) {
     let params = ctx.request.params();
-    let coin = !params["coin"] ? "bitcoin" : params["coin"].toLowerCase();
+    let coin = String(params["coin"] ?? "bitcoin").toLowerCase();
 
     let isSupportedCoin = await this.checkSupportedCoin(coin);
 
@@ -19,7 +19,7 @@ export default class CoinsController {
         .send({ error: "This Coins is not Supported" });
 
     let oldQuery = await this.checkQueryExists(coin);
-    console.log(oldQuery)
+
     if (oldQuery)
       return ctx.response.status(200).send({
         coin: oldQuery.coin,
@@ -51,10 +51,8 @@ export default class CoinsController {
 
   public async getCoinWithSpecificCurrency(ctx: HttpContextContract) {
     let params = ctx.request.params();
-    let currency = !params["currency"]
-      ? "usd"
-      : params["currency"].toLowerCase();
-    let coin = !params["coin"] ? "bitcoin" : params["coin"].toLowerCase();
+    let currency = String(params["currency"]?? "usd").toLowerCase()
+    let coin = String(params["coin"] ?? "bitcoin").toLowerCase()
 
     let isSupportedCoin = await this.checkSupportedCoin(coin);
 
@@ -69,6 +67,15 @@ export default class CoinsController {
       return ctx.response
         .status(406)
         .send({ message: "This currency is not supported" });
+
+        let oldQuery = await this.checkQueryWithSpecificCurrencyExists(coin, currency);
+    
+    if (oldQuery)
+      return ctx.response.status(200).send({
+        coin: oldQuery.coin,
+        current_price: oldQuery.currencies,
+        last_updated: oldQuery.last_updated,
+      });
 
     let coinResult = await CoinsGeckoService.getCoinCurrency(coin, currency);
 
@@ -90,6 +97,14 @@ export default class CoinsController {
 
     return ctx.response.status(200).send(responseBody);
   }
+
+  private async checkQueryWithSpecificCurrencyExists(coin: string, currency: string){
+    let query = await QueryHistoryService.getQueryByCoinAndCurrency(coin, currency);
+
+    if (query) return query;
+    else return null;
+  }
+  
 
   private async checkQueryExists(coin: string) {
     let query = await QueryHistoryService.getQueryByCoin(coin);

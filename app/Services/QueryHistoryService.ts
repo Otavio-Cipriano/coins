@@ -8,6 +8,17 @@ export default class QueryHistoryService {
       return query;
     } catch (error) {
       console.log(error);
+      return null
+    }
+  }
+
+  public static async getQueryByCoinAndCurrency(coin: string, currency: string){
+    try {
+      let query = await QueryHistoryRepository.getQueryByCoinAndCurrency(coin, currency)
+      return query
+    } catch (error) {
+      console.log(error)
+      return null
     }
   }
 
