@@ -1,7 +1,5 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import ConvertCurrentPrices from "App/Helpers/ConvertCurrentPrice";
-import ConvertTimeToFullDate from "App/Helpers/ConvertTimeToFullDate";
-import GetObjKey from "App/Helpers/GetObjKey";
 import { Query } from "App/Models/Query";
 import CoinsGeckoService from "App/Services/CoinsGeckoService";
 import QueryHistoryService from "App/Services/QueryHistoryService";
@@ -51,8 +49,8 @@ export default class CoinsController {
 
   public async getCoinWithSpecificCurrency(ctx: HttpContextContract) {
     let params = ctx.request.params();
-    let currency = String(params["currency"]?? "usd").toLowerCase()
-    let coin = String(params["coin"] ?? "bitcoin").toLowerCase()
+    let currency = String(params["currency"] ?? "usd").toLowerCase();
+    let coin = String(params["coin"] ?? "bitcoin").toLowerCase();
 
     let isSupportedCoin = await this.checkSupportedCoin(coin);
 
@@ -68,43 +66,41 @@ export default class CoinsController {
         .status(406)
         .send({ message: "This currency is not supported" });
 
-        let oldQuery = await this.checkQueryWithSpecificCurrencyExists(coin, currency);
-    
+    let oldQuery = await this.checkQueryExists(coin);
+
     if (oldQuery)
       return ctx.response.status(200).send({
         coin: oldQuery.coin,
-        current_price: oldQuery.currencies,
+        current_price: oldQuery.currencies.filter((el) => el.name === currency),
         last_updated: oldQuery.last_updated,
       });
 
-    let coinResult = await CoinsGeckoService.getCoinCurrency(coin, currency);
+    let coinResult = await CoinsGeckoService.getCoin(coin);
 
     if (!coinResult.success)
       return ctx.response
         .status(406)
         .send({ message: "Ops something went wrong" });
 
-    let priceObj = {};
-    priceObj[currency] = coinResult.data[coin][currency];
-
-    let responseBody = {
-      coin: GetObjKey(coinResult.data, coin),
-      current_price: priceObj,
-      last_updated: ConvertTimeToFullDate(
-        coinResult.data[coin].last_updated_at
+    let query: Query = {
+      coin: coinResult.data.id,
+      currencies: ConvertCurrentPrices(
+        coinResult.data.market_data.current_price
       ),
+      last_updated: coinResult.data.market_data.last_updated,
     };
 
-    return ctx.response.status(200).send(responseBody);
-  }
+    let queryHistory = await QueryHistoryService.createQuery(query);
+    console.log(queryHistory);
 
-  private async checkQueryWithSpecificCurrencyExists(coin: string, currency: string){
-    let query = await QueryHistoryService.getQueryByCoinAndCurrency(coin, currency);
-
-    if (query) return query;
-    else return null;
+    return ctx.response.status(200).send({
+      coin: query.coin,
+      current_price: ConvertCurrentPrices(
+        coinResult.data.market_data.current_price
+      ).filter((el) => el.name === currency),
+      last_updated: coinResult.data.market_data.last_updated,
+    });
   }
-  
 
   private async checkQueryExists(coin: string) {
     let query = await QueryHistoryService.getQueryByCoin(coin);

@@ -14,7 +14,7 @@ datasource coins {
 
 model QueryHistory{
   id Int @id @default(autoincrement())
-  coin String
+  coin String @unique
   currencies Currency[]
   last_updated String
   created_at DateTime @default(now())
